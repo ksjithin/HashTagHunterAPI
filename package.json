@@ -1,0 +1,30 @@
+{
+  "name": "hashtaghunterapi",
+  "version": "1.0.0",
+  "description": "api for hashtaghunter",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ksjithin/HashTagHunterAPI.git"
+  },
+  "keywords": [
+    "hashtag"
+  ],
+  "author": "loki",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/ksjithin/HashTagHunterAPI/issues"
+  },
+  "homepage": "https://github.com/ksjithin/HashTagHunterAPI#readme",
+  "dependencies": {
+    "axios": "^0.20.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.10.2",
+    "twitter": "^1.7.1"
+  }
+}

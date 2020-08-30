@@ -6,22 +6,19 @@ const cors = require('cors');
 const dotenv = require('dotenv')
 
 const PORT = process.env.PORT || 3001;
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const NODE_ENV = process.env.NODE_ENV || 'production';
 
-const result = dotenv.config()
-if (result.error) {
-  throw result.error
-}
- 
+//const result = dotenv.config()
+
 app.set('port', PORT);
 app.set('env', NODE_ENV);
 app.use(cors());
 
-/*
+
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
   }
-*/
+
 const connectionstr="mongodb+srv://"+process.env.DBCRED+"@cluster0.jyjwr.mongodb.net/tweetsdb?retryWrites=true&w=majority"
 mongoose.connect(connectionstr);
 app.use('/', require(path.join(__dirname, 'routes')));

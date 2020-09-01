@@ -51,11 +51,11 @@ const getAll = function (req, res) {
 
 const getStream = function (req, res) {
     console.log("reached loadstream")
-    var params = {
-      //  track: ['bugbounty','appsec','cybersecurity']
-      track: 'bugbounty'
-    }
-    T.stream('statuses/filter', params, function (stream) {
+    //  track: ['bugbounty','appsec','cybersecurity']
+    var arr=["bugbounty","citrix","cybersecurity"]
+    T.stream('statuses/filter', {      
+        track: arr.join(',')
+    }, function (stream) {
         stream.on('data', function (data) {
             
 

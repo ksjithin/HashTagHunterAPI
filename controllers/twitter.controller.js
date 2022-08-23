@@ -52,7 +52,7 @@ const getAll = function (req, res) {
 const getStream = function (req, res) {
     console.log("reached loadstream")
     //  track: ['bugbounty','appsec','cybersecurity']
-    var arr=["bugbounty","citrix"]
+    var arr=["bugbounty","bugbountytips"]
     T.stream('statuses/filter', {      
         track: arr.join(',')
     }, function (stream) {

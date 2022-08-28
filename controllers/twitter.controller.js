@@ -3,7 +3,10 @@ var config = require('./config.js');
 var Twitter = require('twitter');
 var T = new Twitter(config);
 var Tweet = require('../models/Tweet');
+const TelegramBot = require('node-telegram-bot-api');
 
+const token =process.env.TELEGRAMTOKEN
+const chatId = process.env.TELEGRAMCHATID
 
 const getAll = function (req, res) {
 
@@ -112,10 +115,65 @@ const test = async (req, res) => {
    
     res.send("test page reached");
 }
+const getStreamForTelegram = function (req, res) {
+    console.log("reached loadstream")
+    //  track: ['bugbounty','appsec','cybersecurity']
+    var arr=["bugbounty","bugbountytips","cybersecurity","infosec"]
+    T.stream('statuses/filter', {      
+        track: arr.join(',')
+    }, function (stream) {
+        stream.on('data', function (data) {
+           // console.log('data: ', data);
+
+            let id = data['id_str']
+                       
+            var tweet = {
+                twid: data['id'],
+                active: false,
+                author: data['user']['name'],
+                avatar: data['user']['profile_image_url'],
+                body: data['text'],
+                date: data['created_at'],
+                screenname: data['user']['screen_name'],
+                url: `https://twitter.com/${data['user']['screen_name']}/status/${id}`
+            };
+            
+            var tweetUrl=tweet.url            
+            const bot = new TelegramBot(token, { polling: false });
+            try {
+                var txt=""
+                txt=data['text']
+                if(txt.startsWith("RT")){
+                    console.log("skipping:"+ tweetUrl )
+                }else{
+                    console.log("url: "+tweetUrl)
+                    bot.sendMessage(chatId, '<a>'+tweetUrl+'</a>', {
+                        parse_mode: 'html'
+                      });
+                }
+                
+              } catch (err) {
+                console.log('Something went wrong when trying to send a Telegram notification', err);
+              }
+
+        });
+
+        stream.on('error', function (error) {
+           // throw error;
+           console.log('Caught exception: ', error);
+        });
+        
+
+        res.send("telegram stream started");
+    });
+
+
+}
 
 module.exports = {
     getAll,
     getStream,
     getStreamFromDB,
-    test
+    test,
+    getStreamForTelegram
 };

@@ -5,7 +5,7 @@ var T = new Twitter(config);
 var Tweet = require('../models/Tweet');
 const TelegramBot = require('node-telegram-bot-api');
 
-const token =process.env.TELEGRAMTOKEN
+const token = process.env.TELEGRAMTOKEN
 const chatId = process.env.TELEGRAMCHATID
 
 const getAll = function (req, res) {
@@ -52,18 +52,27 @@ const getAll = function (req, res) {
 
 }
 
+const clearEntireDB = function (req, res) {
+    Tweet.deleteMany({}, function (err, result) {
+        if (err) { return res.send(err) }
+        res.send("deleted")
+    })
+}
+
+
 const getStream = function (req, res) {
     console.log("reached loadstream")
+    const bot = new TelegramBot(token, { polling: false });
     //  track: ['bugbounty','appsec','cybersecurity']
-    var arr=["bugbounty","bugbountytips"]
-    T.stream('statuses/filter', {      
+    var arr = ["bugbounty", "bugbountytips", "cybersecurity", "infosec","machinelearning","artificalintelligence","deeplearning","datascience"]
+    T.stream('statuses/filter', {
         track: arr.join(',')
     }, function (stream) {
         stream.on('data', function (data) {
-            
+
 
             let id = data['id_str']
-                       
+
             var tweet = {
                 twid: data['id'],
                 active: false,
@@ -74,19 +83,32 @@ const getStream = function (req, res) {
                 screenname: data['user']['screen_name'],
                 url: `https://twitter.com/${data['user']['screen_name']}/status/${id}`
             };
-            var tweetEntry = new Tweet(tweet);
-            tweetEntry.save(function (err) {
-                if (!err) {
-                    console.log(data && data['text']);
-                    
-                }
-            });
+            var txt = ""
+            txt = data['text']
+            if (txt.startsWith("RT")) {
+                console.log("skipping:" + tweet.url)
+            }
+            else {
+                var tweetEntry = new Tweet(tweet);
+                tweetEntry.save(function (err) {
+                    if (!err) {
+                        console.log(data && data['text']);
+
+                    }
+                });
+            }
+
         });
 
         stream.on('error', function (error) {
-           // throw error;
-           console.log('Caught exception: ', error);
+            // throw error;
+            console.log('Caught exception: ', error);
+            bot.sendMessage(chatId, 'there is a stream error thrown', {
+                parse_mode: 'html'
+            });
         });
+
+        bot.sendMessage(chatId, 'stream started', { parse_mode: 'html' });
         res.send("stream started");
     });
 
@@ -104,7 +126,7 @@ const getStreamFromDB = async (req, res) => {
         if (!tweets.length) {
             return res
                 .status(404)
-                .json({ success: false, error: `Movie not found` })
+                .json({ success: false, error: `database is empty` })
         }
         console.log(tweets)
         return res.status(200).json({ success: true, data: tweets })
@@ -112,21 +134,21 @@ const getStreamFromDB = async (req, res) => {
 
 }
 const test = async (req, res) => {
-   
+
     res.send("test page reached");
 }
 const getStreamForTelegram = function (req, res) {
     console.log("reached loadstream")
     //  track: ['bugbounty','appsec','cybersecurity']
-    var arr=["bugbounty","bugbountytips","cybersecurity","infosec"]
-    T.stream('statuses/filter', {      
+    var arr = ["bugbounty", "bugbountytips", "cybersecurity", "infosec"]
+    T.stream('statuses/filter', {
         track: arr.join(',')
     }, function (stream) {
         stream.on('data', function (data) {
-           // console.log('data: ', data);
+            // console.log('data: ', data);
 
             let id = data['id_str']
-                       
+
             var tweet = {
                 twid: data['id'],
                 active: false,
@@ -137,32 +159,32 @@ const getStreamForTelegram = function (req, res) {
                 screenname: data['user']['screen_name'],
                 url: `https://twitter.com/${data['user']['screen_name']}/status/${id}`
             };
-            
-            var tweetUrl=tweet.url            
+
+            var tweetUrl = tweet.url
             const bot = new TelegramBot(token, { polling: false });
             try {
-                var txt=""
-                txt=data['text']
-                if(txt.startsWith("RT")){
-                    console.log("skipping:"+ tweetUrl )
-                }else{
-                    console.log("url: "+tweetUrl)
-                    bot.sendMessage(chatId, '<a>'+tweetUrl+'</a>', {
+                var txt = ""
+                txt = data['text']
+                if (txt.startsWith("RT")) {
+                    console.log("skipping:" + tweetUrl)
+                } else {
+                    console.log("url: " + tweetUrl)
+                    bot.sendMessage(chatId, '<a>' + tweetUrl + '</a>', {
                         parse_mode: 'html'
-                      });
+                    });
                 }
-                
-              } catch (err) {
+
+            } catch (err) {
                 console.log('Something went wrong when trying to send a Telegram notification', err);
-              }
+            }
 
         });
 
         stream.on('error', function (error) {
-           // throw error;
-           console.log('Caught exception: ', error);
+            // throw error;
+            console.log('Caught exception: ', error);
         });
-        
+
 
         res.send("telegram stream started");
     });
@@ -175,5 +197,6 @@ module.exports = {
     getStream,
     getStreamFromDB,
     test,
-    getStreamForTelegram
+    getStreamForTelegram,
+    clearEntireDB
 };
